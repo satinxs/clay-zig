@@ -475,12 +475,24 @@ pub const PointerData = extern struct {
 };
 
 pub const ErrorType = enum(c_uint) {
+    /// User attempted to use `text()` and forgot to call `setMeasureTextFunction()`.
     text_measurement_function_not_provided,
+    /// Clay was initialized with an arena that was too small for the configured max element count.
+    /// Try using `minMemorySize()` to get the exact number of bytes needed.
     arena_capacity_exceeded,
+    /// The declared UI hierarchy has too many elements fo the configured max element count.
+    /// Use `setMaxElementCount()` to increase the max, then call `minMemorySize()` again.
     elements_capacity_exceeded,
+    /// The declared UI hierarchy has too much text for the configured text measure cache size.
+    /// Use `setMaxMeasureTextCacheWordCount()` to increase the max, then call `minMemorySize()` again.
     text_measurement_capacity_exceeded,
+    /// Two elements have been declared with the same ID.
+    /// Set a breakpoint in your error handler for a stack back trace to where this occurred.
     duplicate_id,
+    /// A floating element was declared with a `parent_id` property, but no element with that ID was found.
+    /// Set a breakpoint in your error handler for a stack back trace to where this occurred.
     floating_container_parent_not_found,
+    /// Clay has encountered an internal logic or memory error. Report this.
     internal_error,
 };
 
@@ -518,6 +530,8 @@ pub const isDebugModeEnabled = cdefs.Clay_IsDebugModeEnabled;
 pub const setDebugModeEnabled = cdefs.Clay_SetDebugModeEnabled;
 pub const setCullingEnabled = cdefs.Clay_SetCullingEnabled;
 pub const setMaxElementCount = cdefs.Clay_SetMaxElementCount;
+
+/// Closes the UI element that was most recently opened with `clay.open()`.
 pub const close = cdefs.Clay__CloseElement;
 
 /// Checks if the element you are about to open is hovered. Can be called before
@@ -527,22 +541,27 @@ pub const close = cdefs.Clay__CloseElement;
 /// `clay.pointerOver(your_custom_id)`.
 pub const hovered = cdefs.Clay__NextHovered;
 
+/// Hash a string into an id.
 pub fn Id(id_string: []const u8) ElementId {
     return cdefs.Clay__HashString(String.init(id_string), 0, 0);
 }
 
+/// Hash a string and a number into an id.
 pub fn IdWithIndex(id_string: []const u8, index: usize) ElementId {
     return cdefs.Clay__HashString(String.init(id_string), @intCast(index), 0);
 }
 
+/// Hash a string into an id, using the current parent element's id as a seed.
 pub fn IdLocal(id_string: []const u8) ElementId {
     return cdefs.Clay_GetElementIdLocalWithIndex(String.init(id_string), 0);
 }
 
+/// Hash a string and a number into an id, using the current parent element's id as a seed.
 pub fn IdLocalWithIndex(id_string: []const u8, index: usize) ElementId {
     return cdefs.Clay_GetElementIdLocalWithIndex(String.init(id_string), @intCast(index));
 }
 
+/// Set the function used to compute the size of text in pixels.
 pub fn setMeasureTextFunction(comptime measureTextFn: fn ([]const u8, *TextConfig) Dimensions) void {
     const Fn = struct {
         pub fn measureText(text_: *String, config: *TextConfig) callconv(.C) Dimensions {
@@ -552,17 +571,19 @@ pub fn setMeasureTextFunction(comptime measureTextFn: fn ([]const u8, *TextConfi
     cdefs.Clay_SetMeasureTextFunction(Fn.measureText);
 }
 
+/// Inserts a single text element into the UI with no children.
 pub fn text(text_: []const u8, config: TextConfig) void {
     const ptr = cdefs.Clay__StoreTextElementConfig(config);
     cdefs.Clay__OpenTextElement(String.init(text_), ptr);
 }
 
-/// Inserts an element into the UI with no children
+/// Inserts a single element into the UI with no children.
 pub fn element(config: ElementConfig) void {
     _ = open(config);
     close();
 }
 
+/// Open a new UI element. Can have any number of children. Must be closed with `clay.close()`.
 pub fn open(config: ElementConfig) bool {
     var num_elems: u8 = 0;
     if (config.image != null) num_elems += 1;
