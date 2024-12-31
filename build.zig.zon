@@ -1,5 +1,5 @@
 .{
-    .name = "clay",
+    .name = "clay-zig",
     .version = "0.0.0",
     .minimum_zig_version = "0.14.0",
     .dependencies = .{
