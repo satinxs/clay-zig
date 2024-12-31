@@ -12,7 +12,7 @@ Special thanks to [johan0A](githubusercontent.com/johan0A) for the reference imp
 
 If you haven't taken a look at the [full documentation for clay](https://github.com/nicbarker/clay/blob/main/README.md), it's recommended that you take a look there first to familiarise yourself with the general concepts. This README is abbreviated and applies to using clay in Zig specifically.
 
-The **most notable difference** between the C API and the Zig bindings is the use of if statements to open the scope for declaring child elements and then having to close it "manually" with a defered function call.
+The **most notable difference** between the C API and the Zig bindings is the use of if statements to open the scope for declaring child elements and then having to close it "manually" with a deferred function call.
 
 Other changes include:
  - minor naming changes
@@ -62,18 +62,18 @@ if (clay.open(.{
 
 Download and add `clay-zig` as a dependency by running the following command in your project root:
 ```sh
-zig fetch --save https://github.com/raugl/clay-zig-bindings/archive/<commit sha>.tar.gz
+zig fetch --save https://github.com/raugl/clay-zig/archive/<commit sha>.tar.gz
 ```
 Then add `clay-zig` as a dependency and import its modules and artifact in your build.zig:
 ```zig
-const clay_dep = b.dependency("clay", .{
+const clay_dep = b.dependency("clay-zig", .{
     .target = target,
     .optimize = optimize,
 });
 exe.linkLibrary(clay_dep.artifact("clay"));
 exe.root_module.addImport("clay", clay_dep.module("clay"));
 ```
-To enable a builtin renderer you should first add it to your project separatly, then tell clay about it. In this example we are using [raylib-zig](https://github.com/Not-Nik/raylib-zig):
+To enable a builtin renderer you should first add its third party library to your project separately, then tell clay about it. In this example we are using [raylib-zig](https://github.com/Not-Nik/raylib-zig):
 ```zig
 const cl = @import("clay");
 
