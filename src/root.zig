@@ -63,11 +63,11 @@ pub const String = extern struct {
     chars: [*c]const u8,
 
     pub fn init(string: []const u8) String {
-        return String{ .chars = @ptrCast(string), .len = @intCast(string.len) };
+        return String{ .chars = string.ptr, .len = string.len };
     }
 
     pub fn slice(self: String) []const u8 {
-        return @ptrCast(self.chars[0..@intCast(self.len)]);
+        return self.chars[0..self.len];
     }
 };
 
@@ -88,7 +88,7 @@ pub const Dimensions = extern struct {
     h: f32 = 0,
 
     pub fn all(size: f32) Dimensions {
-        return Dimensions{ .w = size, .y = size };
+        return Dimensions{ .w = size, .h = size };
     }
 };
 
@@ -506,7 +506,9 @@ pub const ErrorHandler = extern struct {
     function: *const fn (ErrorData) callconv(.C) void = &defaultHandler,
     user_data: ?*anyopaque = null,
 
-    fn defaultHandler(_: ErrorData) callconv(.C) void {}
+    fn defaultHandler(data: ErrorData) callconv(.C) void {
+        std.debug.print("[ERROR]: '{s}', '{s}'\n", .{ @tagName(data.error_type), data.error_text.slice() });
+    }
 };
 
 // Public API functions ---------------------------------

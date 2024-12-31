@@ -157,15 +157,13 @@ fn createLayout() clay.RenderCommandArray {
                 clay.element(.{
                     .id = clay.Id("ProfilePicture"),
                     .layout = .{ .sizing = .fixed(60) },
-                    .image = .{ .image_data = @ptrCast(&profile_picture), size = .all(60) },
+                    .image = .{ .image_data = &profile_picture, size = .all(60) },
                 });
-                clay.text("Clay - UI Library", .{ .font_size = 24, .text_color = .init(255,255,255,255) });
+                clay.text("Clay - UI Library", .{ .font_size = 24, .text_color = .init(255, 255, 255, 255) });
             }
 
             // Standard Zig code like loops etc. work inside components
-            for (0..10) |i| {
-                sidebarItemComponent(i)
-            }
+            for (0..10) |i| sidebarItemComponent(i)
         }
 
         if (clay.open(.{
