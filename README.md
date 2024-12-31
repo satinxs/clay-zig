@@ -86,14 +86,13 @@ cl.enableRenderer(exe.root_module, clay_dep, .{ .raylib = raylib_dep.module("ray
 1. Ask clay for how much static memory it needs using [clay.minMemorySize()](https://github.com/nicbarker/clay/blob/main/README.md#clay_minmemorysize), create an Arena for it to use with [clay.createArenaWithCapacityAndMemory(min_memory_size, memory)](https://github.com/nicbarker/clay/blob/main/README.md#clay_createarenawithcapacityandmemory), and initialize it with [clay.initialize(arena, layout_size, error_handler)](https://github.com/nicbarker/clay/blob/main/README.md#clay_initialize).
 
 ```zig
-const mim_memory_size = clay.minMemorySize();
-const memory = try allocator.alloc(u8, mim_memory_size);
+const memory = try allocator.alloc(u8, clay.minMemorySize());
 defer allocator.free(memory);
-const arena = clay.createArenaWithCapacityAndMemory(@intCast(mem.len), @ptrCast(memory));
+const arena = clay.createArenaWithCapacityAndMemory(@intCast(memory.len), @ptrCast(memory));
 clay.initialize(arena, .{}, .{});
 ```
 
-2. Provide a `measureText(text, config)` function "c" with [clay.setMeasureTextFunction(function)](https://github.com/nicbarker/clay/blob/main/README.md#clay_setmeasuretextfunction) so that clay can measure and wrap text.
+2. Provide a `measureText(text, config)` function with [clay.setMeasureTextFunction(function)](https://github.com/nicbarker/clay/blob/main/README.md#clay_setmeasuretextfunction) so that clay can measure and wrap text.
 
 ```zig
 // Example measure text function
@@ -108,13 +107,10 @@ clay.setMeasureTextFunction(measureText)
 3. **Optional** - Call [clay.setPointerPosition(pointerPosition)](https://github.com/nicbarker/clay/blob/main/README.md#clay_setpointerposition) if you want to use mouse interactions.
 
 ```zig
-clay.setPointerState(
-    .{ .x = mouse_position_x, .y = mouse_position_y, },
-    is_left_mouse_button_down,
-);
+clay.setPointerState(.{ .x = mouse_position_x, .y = mouse_position_y }, is_left_mouse_button_down);
 ```
 
-4. Call [clay.beginLayout()](https://github.com/nicbarker/clay/blob/main/README.md#clay_beginlayout) and declare your layout using the provided macros
+4. Call [clay.beginLayout()](https://github.com/nicbarker/clay/blob/main/README.md#clay_beginlayout) and declare your layout using the provided functions.
 
 ```zig
 const COLOR_LIGHT = clay.Color.init(224, 215, 210, 255);
@@ -128,13 +124,11 @@ const sidebar_item_layout = clay.LayoutConfig{
 
 // Re-useable components are just normal functions
 fn sidebarItemComponent(index: usize) void {
-    if (clay.open(.{
+    clay.element(.{
         .id = clay.IdWithIndex("SidebarBlob", index),
         .layout = sidebar_item_layout,
         .rectangle = .{ .color = COLOR_ORANGE },
-    })) {
-        defer clay.close();
-    }
+    });
 }
 
 // An example function to begin the "root" of your layout tree
@@ -168,7 +162,7 @@ fn createLayout() clay.RenderCommandArray {
                 clay.text("Clay - UI Library", .{ .font_size = 24, .text_color = .init(255,255,255,255) });
             }
 
-            // Standard Zig code like loops etc work inside components
+            // Standard Zig code like loops etc. work inside components
             for (0..10) |i| {
                 sidebarItemComponent(i)
             }
@@ -194,7 +188,9 @@ const render_commands = clay.endLayout();
 
 for (render_commands.slice()) |render_command| {
     switch (render_command.type) {
-        .rectangle => drawRectangle(render_command.bounding_box, render_command.config.rectangle.color),
+        .rectangle => {
+            drawRectangle(render_command.bounding_box, render_command.config.rectangle.color);
+        },
         // ... Implement handling of other command types
     }
 }
