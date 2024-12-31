@@ -75,7 +75,7 @@ exe.root_module.addImport("clay", clay_dep.module("clay"));
 ```
 To enable a builtin renderer you should first add its third party library to your project separately (eg: raylib, sdl2), then tell clay-zig about it. In this example we are using [raylib-zig](https://github.com/Not-Nik/raylib-zig):
 ```zig
-const cl = @import("clay");
+const cl = @import("clay-zig");
 
 const raylib_dep = b.dependency("raylib-zig", .{ ... });
 cl.enableRenderer(exe.root_module, clay_dep, .{ .raylib = raylib_dep.module("raylib") });
