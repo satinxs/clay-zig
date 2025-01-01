@@ -2,11 +2,12 @@ const std = @import("std");
 const rl = @import("raylib");
 const cl = @import("clay");
 
-var fonts: [32]?rl.Font = .{null} ** 32;
+pub var fonts: [10]?rl.Font = .{null} ** 10;
 var fonts_len: u8 = 0;
 
 pub fn loadFont(file_name: [*:0]const u8, font_size: i32, font_chars: ?[]i32) u16 {
     fonts[fonts_len] = rl.loadFontEx(file_name, font_size, font_chars);
+    rl.setTextureFilter(fonts[0].?.texture, .texture_filter_bilinear);
     defer fonts_len += 1;
     return fonts_len;
 }

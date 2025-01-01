@@ -22,10 +22,30 @@
           inherit inputs pkgs;
           modules = [
             {
-              languages.zig.enable = true;
-              packages = with pkgs; [ nixd alejandra ];
-
               enterShell = ''export PATH="$HOME/.local/bin/:$PATH"'';
+              languages.zig.enable = true;
+
+              packages = with pkgs; [
+                nixd
+                alejandra
+
+                gdb
+                python3
+                rr
+                valgrind-light
+
+                libGL
+                wayland
+                wayland-protocols
+
+                libxkbcommon
+                xorg.libX11
+                xorg.libXrandr
+                xorg.libXinerama
+                xorg.libXcursor
+                xorg.libXi
+                xorg.libXext
+              ];
             }
           ];
         };

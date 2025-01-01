@@ -1,24 +1,17 @@
 const std = @import("std");
 
-pub const Renderer = union(enum) {
-    html,
-    sdl2,
-    raylib: *std.Build.Module,
-};
-
-pub fn enableRenderer(
-    root_module: *std.Build.Module,
+pub fn enableRaylibRenderer(
+    compile_step: *std.Build.Step.Compile,
     clay_dep: *std.Build.Dependency,
-    renderer: Renderer,
+    raylib_dep: *std.Build.Dependency,
 ) void {
-    switch (renderer) {
-        .raylib => |raylib_mod| {
-            clay_dep.module("clay").addImport("raylib", raylib_mod);
-            clay_dep.module("renderer_raylib").addImport("raylib", raylib_mod);
-            root_module.addImport("clay_renderer_raylib", clay_dep.module("renderer_raylib"));
-        },
-        else => unreachable, // TODO: Unimplemented
-    }
+    const clay_mod = clay_dep.module("clay");
+    const raylib_mod = raylib_dep.module("raylib");
+    const renderer_mod = clay_dep.module("renderer_raylib");
+
+    clay_mod.addImport("raylib", raylib_mod);
+    renderer_mod.addImport("raylib", raylib_mod);
+    compile_step.root_module.addImport("clay_renderer", renderer_mod);
 }
 
 pub fn build(b: *std.Build) void {

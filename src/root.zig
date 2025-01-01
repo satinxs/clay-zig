@@ -3,7 +3,7 @@ const zeroes = std.mem.zeroes;
 
 // Function Forward Declarations ---------------------------------
 // for direct calls to the clay c library
-pub const cdefs = struct {
+pub const cdef = struct {
     // Public API functions ---------------------------------
     pub extern fn Clay_MinMemorySize() u32;
     pub extern fn Clay_CreateArenaWithCapacityAndMemory(capacity: u32, offset: [*c]u8) Arena;
@@ -17,7 +17,7 @@ pub const cdefs = struct {
     pub extern fn Clay_GetElementIdWithIndex(id_string: String, index: u32) ElementId;
     pub extern fn Clay_GetElementIdLocalWithIndex(id_string: String, index: i32) ElementId;
     pub extern fn Clay_Hovered() bool;
-    pub extern fn Clay_OnHover(on_hover_function: *const fn (ElementId, PointerData, isize) callconv(.C) void, user_data: ?*anyopaque) void;
+    pub extern fn Clay_OnHover(on_hover_function: *const fn (ElementId, PointerData, usize) callconv(.C) void, user_data: usize) void;
     pub extern fn Clay_PointerOver(element_id: ElementId) bool;
     pub extern fn Clay_GetScrollContainerData(id: ElementId) ScrollContainerData;
     pub extern fn Clay_SetMeasureTextFunction(measure_text_function: *const fn (*String, *TextConfig) callconv(.C) Dimensions) void;
@@ -81,6 +81,10 @@ pub const Arena = extern struct {
     next_allocation: usize,
     capacity: usize,
     memory: [*c]u8,
+
+    pub fn init(memory: []u8) Arena {
+        return cdef.Clay_CreateArenaWithCapacityAndMemory(@intCast(memory.len), @ptrCast(memory));
+    }
 };
 
 pub const Dimensions = extern struct {
@@ -272,7 +276,7 @@ pub const LayoutConfig = extern struct {
     direction: LayoutDirection = .left_to_right,
 };
 
-pub const default_layout = cdefs.CLAY_LAYOUT_DEFAULT;
+pub const default_layout = cdef.CLAY_LAYOUT_DEFAULT;
 
 // Rectangle
 pub const RectangleConfig = extern struct {
@@ -458,7 +462,7 @@ pub const RenderCommandArray = extern struct {
     }
 
     pub fn get(self: *RenderCommandArray, index: i32) *RenderCommand {
-        return cdefs.Clay_RenderCommandArray_Get(self, index);
+        return cdef.Clay_RenderCommandArray_Get(self, index);
     }
 };
 
@@ -512,55 +516,54 @@ pub const ErrorHandler = extern struct {
 };
 
 // Public API functions ---------------------------------
-pub const debug_view_highlight_color = cdefs.Clay__debugViewHighlightColor;
-pub const debug_view_width = cdefs.Clay__debugViewWidth;
+pub const debug_view_highlight_color = cdef.Clay__debugViewHighlightColor;
+pub const debug_view_width = cdef.Clay__debugViewWidth;
 
-pub const minMemorySize = cdefs.Clay_MinMemorySize;
-pub const createArenaWithCapacityAndMemory = cdefs.Clay_CreateArenaWithCapacityAndMemory;
-pub const setPointerState = cdefs.Clay_SetPointerState;
-pub const initialize = cdefs.Clay_Initialize;
-pub const updateScrollContainers = cdefs.Clay_UpdateScrollContainers;
-pub const setLayoutDimensions = cdefs.Clay_SetLayoutDimensions;
-pub const beginLayout = cdefs.Clay_BeginLayout;
-pub const endLayout = cdefs.Clay_EndLayout;
-pub const onHover = cdefs.Clay_OnHover; // FIXME: which id?
-pub const pointerOver = cdefs.Clay_PointerOver;
-pub const getScrollContainerData = cdefs.Clay_GetScrollContainerData;
-pub const getOpenElementId = cdefs.Clay__GetOpenLayoutElementId;
-pub const setQueryScrollOffsetFunction = cdefs.Clay_SetQueryScrollOffsetFunction;
-pub const isDebugModeEnabled = cdefs.Clay_IsDebugModeEnabled;
-pub const setDebugModeEnabled = cdefs.Clay_SetDebugModeEnabled;
-pub const setCullingEnabled = cdefs.Clay_SetCullingEnabled;
-pub const setMaxElementCount = cdefs.Clay_SetMaxElementCount;
+pub const minMemorySize = cdef.Clay_MinMemorySize;
+pub const setPointerState = cdef.Clay_SetPointerState;
+pub const initialize = cdef.Clay_Initialize;
+pub const updateScrollContainers = cdef.Clay_UpdateScrollContainers;
+pub const setLayoutDimensions = cdef.Clay_SetLayoutDimensions;
+pub const beginLayout = cdef.Clay_BeginLayout;
+pub const endLayout = cdef.Clay_EndLayout;
+pub const onHover = cdef.Clay_OnHover; // FIXME: which id?
+pub const pointerOver = cdef.Clay_PointerOver;
+pub const getScrollContainerData = cdef.Clay_GetScrollContainerData;
+pub const getOpenElementId = cdef.Clay__GetOpenLayoutElementId;
+pub const setQueryScrollOffsetFunction = cdef.Clay_SetQueryScrollOffsetFunction;
+pub const isDebugModeEnabled = cdef.Clay_IsDebugModeEnabled;
+pub const setDebugModeEnabled = cdef.Clay_SetDebugModeEnabled;
+pub const setCullingEnabled = cdef.Clay_SetCullingEnabled;
+pub const setMaxElementCount = cdef.Clay_SetMaxElementCount;
 
 /// Closes the UI element that was most recently opened with `clay.open()`.
-pub const close = cdefs.Clay__CloseElement;
+pub const close = cdef.Clay__CloseElement;
 
 /// Checks if the element you are about to open is hovered. Can be called before
 /// calls to `clay.open()` or `clay.element()`, and also inline in their argument lists.
 ///
 /// Asserts that you have have not used a custom id, in that case you should use
 /// `clay.pointerOver(your_custom_id)`.
-pub const hovered = cdefs.Clay__NextHovered;
+pub const hovered = cdef.Clay__NextHovered;
 
 /// Hash a string into an id.
 pub fn Id(id_string: []const u8) ElementId {
-    return cdefs.Clay__HashString(String.init(id_string), 0, 0);
+    return cdef.Clay__HashString(String.init(id_string), 0, 0);
 }
 
 /// Hash a string and a number into an id.
 pub fn IdWithIndex(id_string: []const u8, index: usize) ElementId {
-    return cdefs.Clay__HashString(String.init(id_string), @intCast(index), 0);
+    return cdef.Clay__HashString(String.init(id_string), @intCast(index), 0);
 }
 
 /// Hash a string into an id, using the current parent element's id as a seed.
 pub fn IdLocal(id_string: []const u8) ElementId {
-    return cdefs.Clay_GetElementIdLocalWithIndex(String.init(id_string), 0);
+    return cdef.Clay_GetElementIdLocalWithIndex(String.init(id_string), 0);
 }
 
 /// Hash a string and a number into an id, using the current parent element's id as a seed.
 pub fn IdLocalWithIndex(id_string: []const u8, index: usize) ElementId {
-    return cdefs.Clay_GetElementIdLocalWithIndex(String.init(id_string), @intCast(index));
+    return cdef.Clay_GetElementIdLocalWithIndex(String.init(id_string), @intCast(index));
 }
 
 /// Set the function used to compute the size of text in pixels.
@@ -570,13 +573,13 @@ pub fn setMeasureTextFunction(comptime measureTextFn: fn ([]const u8, *TextConfi
             return measureTextFn(text_.slice(), config);
         }
     };
-    cdefs.Clay_SetMeasureTextFunction(Fn.measureText);
+    cdef.Clay_SetMeasureTextFunction(Fn.measureText);
 }
 
 /// Inserts a single text element into the UI with no children.
 pub fn text(text_: []const u8, config: TextConfig) void {
-    const ptr = cdefs.Clay__StoreTextElementConfig(config);
-    cdefs.Clay__OpenTextElement(String.init(text_), ptr);
+    const ptr = cdef.Clay__StoreTextElementConfig(config);
+    cdef.Clay__OpenTextElement(String.init(text_), ptr);
 }
 
 /// Inserts a single element into the UI with no children.
@@ -593,39 +596,39 @@ pub fn open(config: ElementConfig) bool {
     if (config.custom != null) num_elems += 1;
     std.debug.assert(num_elems <= 1);
 
-    cdefs.Clay__OpenElement();
-    defer cdefs.Clay__ElementPostConfiguration();
+    cdef.Clay__OpenElement();
+    defer cdef.Clay__ElementPostConfiguration();
 
     if (config.id) |id_| {
-        cdefs.Clay__AttachId(id_);
+        cdef.Clay__AttachId(id_);
     }
     if (config.layout) |conf| {
-        const ptr = cdefs.Clay__StoreLayoutConfig(conf);
-        cdefs.Clay__AttachLayoutConfig(ptr);
+        const ptr = cdef.Clay__StoreLayoutConfig(conf);
+        cdef.Clay__AttachLayoutConfig(ptr);
     }
     if (config.border) |conf| {
-        const ptr = cdefs.Clay__StoreBorderElementConfig(conf);
-        cdefs.Clay__AttachElementConfig(@ptrCast(ptr), .border);
+        const ptr = cdef.Clay__StoreBorderElementConfig(conf);
+        cdef.Clay__AttachElementConfig(@ptrCast(ptr), .border);
     }
     if (config.scroll) |conf| {
-        const ptr = cdefs.Clay__StoreScrollElementConfig(conf);
-        cdefs.Clay__AttachElementConfig(@ptrCast(ptr), .scroll);
+        const ptr = cdef.Clay__StoreScrollElementConfig(conf);
+        cdef.Clay__AttachElementConfig(@ptrCast(ptr), .scroll);
     }
     if (config.floating) |conf| {
-        const ptr = cdefs.Clay__StoreFloatingElementConfig(conf);
-        cdefs.Clay__AttachElementConfig(@ptrCast(ptr), .floating);
+        const ptr = cdef.Clay__StoreFloatingElementConfig(conf);
+        cdef.Clay__AttachElementConfig(@ptrCast(ptr), .floating);
     }
     if (config.image) |conf| {
-        const ptr = cdefs.Clay__StoreImageElementConfig(conf);
-        cdefs.Clay__AttachElementConfig(@ptrCast(ptr), .image);
+        const ptr = cdef.Clay__StoreImageElementConfig(conf);
+        cdef.Clay__AttachElementConfig(@ptrCast(ptr), .image);
     }
     if (config.rectangle) |conf| {
-        const ptr = cdefs.Clay__StoreRectangleElementConfig(conf);
-        cdefs.Clay__AttachElementConfig(@ptrCast(ptr), .rectangle);
+        const ptr = cdef.Clay__StoreRectangleElementConfig(conf);
+        cdef.Clay__AttachElementConfig(@ptrCast(ptr), .rectangle);
     }
     if (config.custom) |conf| {
-        const ptr = cdefs.Clay__StoreCustomElementConfig(conf);
-        cdefs.Clay__AttachElementConfig(@ptrCast(ptr), .custom);
+        const ptr = cdef.Clay__StoreCustomElementConfig(conf);
+        cdef.Clay__AttachElementConfig(@ptrCast(ptr), .custom);
     }
     return true;
 }
