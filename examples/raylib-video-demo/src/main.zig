@@ -262,8 +262,9 @@ fn handleSidebarInteraction(
         std.debug.assert(index < documents.len);
         selected_document_index = index;
 
-        // foo = index;
-        std.debug.print("{d}\n", .{index});
+        // FIXME: Program receives signal 5 (SIGTRAP) if I don't print `user_data`. All the memory
+        // layouts look fine.
+        // std.debug.print("{d}\n", .{index});
     }
 }
 
