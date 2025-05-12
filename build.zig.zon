@@ -1,7 +1,8 @@
 .{
-    .name = "clay-zig",
+    .name = .ClayZig,
     .version = "0.0.0",
     .minimum_zig_version = "0.14.0",
+    .fingerprint = 0x231e412378764a60,
     .dependencies = .{
         .clay_src = .{
             .url = "git+https://github.com/nicbarker/clay#c9e1a63378ecfba448ecd42796838264b10adafb",
